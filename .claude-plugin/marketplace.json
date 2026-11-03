@@ -1,0 +1,17 @@
+{
+  "name": "evaboot-labs-startup-finder",
+  "owner": {
+    "name": "Evaboot",
+    "url": "https://evaboot.com"
+  },
+  "metadata": {
+    "description": "Evaboot's startup finder skill for Claude Code."
+  },
+  "plugins": [
+    {
+      "name": "startup-finder",
+      "source": "./",
+      "description": "An AI agent finds startups on LinkedIn through Evaboot: a Sales Navigator account search for young, growing companies, a startup score per company, then the founders of the startups kept, with verified emails."
+    }
+  ]
+}

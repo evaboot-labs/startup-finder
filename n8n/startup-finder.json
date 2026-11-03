@@ -1,0 +1,692 @@
+{
+  "name": "Startup finder (Evaboot MCP)",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "weeks",
+              "triggerAtDay": [
+                1
+              ],
+              "triggerAtHour": 8
+            }
+          ]
+        }
+      },
+      "id": "74d739fc-2e0c-45cb-b0d7-9128cf4a30b7",
+      "name": "Every Monday at 8",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        0,
+        0
+      ]
+    },
+    {
+      "parameters": {},
+      "id": "d561bb81-1cf5-4bc0-8eb8-6ec3d0ca8d73",
+      "name": "Run now",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        0,
+        200
+      ]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "32e0cb21-62f3-4a32-bf9e-f6f8159aa27d",
+              "name": "account_search_url",
+              "type": "string",
+              "value": "https://www.linkedin.com/sales/search/company?query=(filters%3AList((type%3ACOMPANY_HEADCOUNT%2Cvalues%3AList((id%3AC%2Ctext%3A11-50%2CselectionType%3AINCLUDED)))%2C(type%3AREGION%2Cvalues%3AList((id%3A103644278%2Ctext%3AUnited%2520States%2CselectionType%3AINCLUDED)))%2C(type%3AINDUSTRY%2Cvalues%3AList((id%3A4%2Ctext%3ASoftware%2520Development%2CselectionType%3AINCLUDED)))%2C(type%3ACOMPANY_HEADCOUNT_GROWTH%2CrangeValue%3A(min%3A20))%2C(type%3AJOB_OPPORTUNITIES%2Cvalues%3AList((id%3AJO1%2Ctext%3AHiring%2520on%2520Linkedin%2CselectionType%3AINCLUDED)))))"
+            },
+            {
+              "id": "b5b250a2-8a6c-49f6-ad7c-08a4a26aba8b",
+              "name": "accounts_per_run",
+              "type": "number",
+              "value": 25
+            },
+            {
+              "id": "fb57a707-b06e-404b-a095-e6b6d7eb2122",
+              "name": "people_per_run",
+              "type": "number",
+              "value": 25
+            },
+            {
+              "id": "6edf4568-82ec-4081-9e3f-daaa29d29e8b",
+              "name": "startups_tab_url",
+              "type": "string",
+              "value": "PASTE_THE_STARTUPS_TAB_URL_WITH_GID"
+            },
+            {
+              "id": "9f59fc18-6b84-404b-8a90-715315f02892",
+              "name": "people_tab_url",
+              "type": "string",
+              "value": "PASTE_THE_PEOPLE_TAB_URL_WITH_GID"
+            },
+            {
+              "id": "db314716-bfe3-4c8c-ac27-ada3d934ee0d",
+              "name": "profile",
+              "type": "string",
+              "value": "{\"founded_after\": 2020, \"growth_min\": 20, \"growth_high\": 50, \"revenue_max_musd\": 10, \"keep_score\": 5, \"exclude_types\": [\"Public Company\", \"Sole Proprietorship\", \"Government Agency\", \"Nonprofit\", \"Educational\"], \"services_words\": [\"consulting\", \"consultancy\", \"agency\", \"outsourcing\", \"staffing\", \"services partner\"], \"seniority_ids\": [320, 310]}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "74c4d3f2-0476-42ef-828c-d501ead0425c",
+      "name": "Your settings",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        220,
+        100
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "read",
+        "documentId": {
+          "__rl": true,
+          "mode": "url",
+          "value": "={{ $('Your settings').first().json.startups_tab_url }}"
+        },
+        "options": {},
+        "sheetName": {
+          "__rl": true,
+          "mode": "url",
+          "value": "={{ $('Your settings').first().json.startups_tab_url }}"
+        }
+      },
+      "id": "e3434ba0-adf4-4717-81b4-39960f60e41d",
+      "name": "Startups already in your sheet",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        440,
+        100
+      ],
+      "alwaysOutputData": true,
+      "executeOnce": true,
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "endpointUrl": "https://mcp.evaboot.com/mcp",
+        "authentication": "bearerAuth",
+        "tool": {
+          "__rl": true,
+          "mode": "list",
+          "value": "export_sn_search_or_list",
+          "cachedResultName": "export_sn_search_or_list"
+        },
+        "inputMode": "json",
+        "jsonInput": "={{ JSON.stringify({ search_url: $('Your settings').first().json.account_search_url, max_results: $('Your settings').first().json.accounts_per_run, name: 'Startup finder companies ' + $now.toFormat('yyyy-MM-dd') }) }}",
+        "options": {
+          "timeout": 120000
+        }
+      },
+      "id": "150c24f0-c47e-4f61-b917-f600db5281c8",
+      "name": "Export the companies",
+      "type": "@n8n/n8n-nodes-langchain.mcpClient",
+      "typeVersion": 1.1,
+      "position": [
+        660,
+        100
+      ],
+      "executeOnce": true,
+      "credentials": {
+        "httpBearerAuth": {
+          "id": "",
+          "name": "Evaboot MCP (Bearer)"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "amount": 30
+      },
+      "id": "ac2691f6-1b96-43e9-94c3-68d821d3c4c5",
+      "name": "Wait 30 s (companies)",
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        880,
+        100
+      ]
+    },
+    {
+      "parameters": {
+        "endpointUrl": "https://mcp.evaboot.com/mcp",
+        "authentication": "bearerAuth",
+        "tool": {
+          "__rl": true,
+          "mode": "list",
+          "value": "get_export",
+          "cachedResultName": "get_export"
+        },
+        "inputMode": "json",
+        "jsonInput": "={{ JSON.stringify({ extraction_id: $('Export the companies').first().json.structuredContent.result.extraction_id }) }}",
+        "options": {
+          "timeout": 120000
+        }
+      },
+      "id": "fd7be6c6-7268-4591-a1c1-1f5435c59296",
+      "name": "Check the companies export",
+      "type": "@n8n/n8n-nodes-langchain.mcpClient",
+      "typeVersion": 1.1,
+      "position": [
+        1100,
+        100
+      ],
+      "executeOnce": true,
+      "credentials": {
+        "httpBearerAuth": {
+          "id": "",
+          "name": "Evaboot MCP (Bearer)"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "typeValidation": "loose",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "4d481998-4214-4d59-b3be-6804aefe3293",
+              "leftValue": "={{ $json.structuredContent.result.status }}",
+              "rightValue": "EXECUTED",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "675643d8-79a1-4091-ac31-2746d2329f6c",
+      "name": "Companies done?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        1320,
+        100
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "\n// Stop instead of waiting forever when the export failed.\nconst r = $json.structuredContent.result;\nif (r.failure_reason || /FAIL|ERROR|CANCEL/i.test(r.status || '')) throw new Error(`The export stopped: ${r.status} ${r.failure_reason || ''}`);\nreturn [$input.first()];\n"
+      },
+      "id": "8674109b-c2de-47b4-9a21-8154b8b1ae5a",
+      "name": "Still running? (companies)",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1320,
+        280
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "\n// Same points as finder.py score: founded year, headcount growth, revenue, company type, services words.\nconst P = JSON.parse($('Your settings').first().json.profile);\nconst seen = new Set($('Startups already in your sheet').all().map(i => String(i.json['LinkedIn id'] || '')).filter(Boolean));\nconst num = v => { const n = parseFloat(String(v ?? '').replace(/[,%]/g, '')); return isNaN(n) ? null : n; };\nconst today = $now.toFormat('yyyy-MM-dd');\nconst out = [];\nfor (const c of $json.structuredContent.result.prospects || []) {\n  const id = String(c['Company Linkedin URL Unique ID'] || '').replace(/\\/$/, '').split('/').pop();\n  if (seen.has(id)) continue;\n  let pts = 0, why = [], drop = '';\n  if (c['Matches Filters'] === 'no_match') drop = `does not match the search (${c['No Match Reasons']})`;\n  else if (P.exclude_types.includes(c['Company Type'])) drop = `${c['Company Type']}, not a venture startup`;\n  else {\n    const f = num(c['Company Year Founded']);\n    if (f && f >= P.founded_after) { pts += 3; why.push(`founded ${f}`); }\n    else why.push(f ? `founded ${f}, before ${P.founded_after}` : 'no founding year on LinkedIn');\n    const g = num(c['Company Employee Growth 1 Year (%)']);\n    if (g !== null && g >= P.growth_high) { pts += 3; why.push(`+${g}% staff in 1 year`); }\n    else if (g !== null && g >= P.growth_min) { pts += 2; why.push(`+${g}% staff in 1 year`); }\n    const r = num(c['Company Revenue Max (Millions USD)']);\n    if (r !== null && r <= P.revenue_max_musd) { pts += 1; why.push(`revenue under $${r}M`); }\n    if (c['Company Type'] === 'Privately Held') { pts += 1; why.push('privately held'); }\n    const text = `${c['Company Description'] || ''} ${c['Company Specialities'] || ''}`.toLowerCase();\n    const hit = P.services_words.filter(w => text.includes(w));\n    if (hit.length) { pts -= 3; why.push(`reads like a services firm (${hit.join(', ')})`); }\n  }\n  out.push({ json: { Date: today, Keep: !drop && pts >= P.keep_score ? 'yes' : 'no', Score: drop ? '' : pts,\n    Company: c['Company Name'] || '', Founded: c['Company Year Founded'] || '', Employees: c['Company Employee Range'] || '',\n    'Growth 1y %': c['Company Employee Growth 1 Year (%)'] || '', Why: drop || why.join('; '),\n    Website: c['Company Website URL'] || '', 'LinkedIn id': id } });\n}\nif (!out.length) throw new Error('No new company in this run: every company is already in your sheet.');\nreturn out.sort((a, b) => (a.json.Keep !== 'yes') - (b.json.Keep !== 'yes') || (b.json.Score === '' ? -99 : b.json.Score) - (a.json.Score === '' ? -99 : a.json.Score));\n"
+      },
+      "id": "047080db-9822-43bc-bb02-dcde4dd2fc5e",
+      "name": "Score the startups",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        220,
+        520
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "mode": "url",
+          "value": "={{ $('Your settings').first().json.startups_tab_url }}"
+        },
+        "options": {},
+        "columns": {
+          "mappingMode": "autoMapInputData",
+          "value": {},
+          "matchingColumns": [],
+          "schema": []
+        },
+        "sheetName": {
+          "__rl": true,
+          "mode": "url",
+          "value": "={{ $('Your settings').first().json.startups_tab_url }}"
+        }
+      },
+      "id": "f38aad57-92fa-428c-af6d-69c255d7dd9d",
+      "name": "Add to Startups",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        440,
+        400
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "\n// Same as finder.py people-url: the founders and C-level of the kept startups.\nconst P = JSON.parse($('Your settings').first().json.profile);\nconst ids = $('Score the startups').all().filter(i => i.json.Keep === 'yes').map(i => i.json['LinkedIn id']);\nif (!ids.length) throw new Error('No startup kept this week: loosen the profile or raise accounts_per_run.');\nconst enc = s => encodeURIComponent(encodeURIComponent(s));\nconst comp = ids.map(i => `(id%3A${enc('urn:li:organization:' + i)}%2CselectionType%3AINCLUDED)`).join('%2C');\nconst sen = P.seniority_ids.map(s => `(id%3A${s}%2CselectionType%3AINCLUDED)`).join('%2C');\nconst url = 'https://www.linkedin.com/sales/search/people?query=(filters%3AList('\n  + `(type%3ACURRENT_COMPANY%2Cvalues%3AList(${comp}))%2C(type%3ASENIORITY_LEVEL%2Cvalues%3AList(${sen}))))`;\nreturn [{ json: { url, startups: ids.length } }];\n"
+      },
+      "id": "4ece18da-df03-4dcd-b70c-1e691ffcddca",
+      "name": "Founders search",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        440,
+        600
+      ],
+      "executeOnce": true
+    },
+    {
+      "parameters": {
+        "endpointUrl": "https://mcp.evaboot.com/mcp",
+        "authentication": "bearerAuth",
+        "tool": {
+          "__rl": true,
+          "mode": "list",
+          "value": "export_sn_search_or_list",
+          "cachedResultName": "export_sn_search_or_list"
+        },
+        "inputMode": "json",
+        "jsonInput": "={{ JSON.stringify({ search_url: $json.url, max_results: $('Your settings').first().json.people_per_run, name: 'Startup finder founders ' + $now.toFormat('yyyy-MM-dd') }) }}",
+        "options": {
+          "timeout": 120000
+        }
+      },
+      "id": "5873f308-baa0-4513-8a0e-962ef2d22a83",
+      "name": "Export the founders",
+      "type": "@n8n/n8n-nodes-langchain.mcpClient",
+      "typeVersion": 1.1,
+      "position": [
+        660,
+        600
+      ],
+      "executeOnce": true,
+      "credentials": {
+        "httpBearerAuth": {
+          "id": "",
+          "name": "Evaboot MCP (Bearer)"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "amount": 30
+      },
+      "id": "a767618a-0ad5-42d1-bc11-f11a49f79670",
+      "name": "Wait 30 s (founders)",
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        880,
+        600
+      ]
+    },
+    {
+      "parameters": {
+        "endpointUrl": "https://mcp.evaboot.com/mcp",
+        "authentication": "bearerAuth",
+        "tool": {
+          "__rl": true,
+          "mode": "list",
+          "value": "get_export",
+          "cachedResultName": "get_export"
+        },
+        "inputMode": "json",
+        "jsonInput": "={{ JSON.stringify({ extraction_id: $('Export the founders').first().json.structuredContent.result.extraction_id }) }}",
+        "options": {
+          "timeout": 120000
+        }
+      },
+      "id": "8666808f-1925-445b-898e-b787ba730870",
+      "name": "Check the founders export",
+      "type": "@n8n/n8n-nodes-langchain.mcpClient",
+      "typeVersion": 1.1,
+      "position": [
+        1100,
+        600
+      ],
+      "executeOnce": true,
+      "credentials": {
+        "httpBearerAuth": {
+          "id": "",
+          "name": "Evaboot MCP (Bearer)"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "typeValidation": "loose",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "21df2dff-39e8-490d-b8d9-b6dd3f17b849",
+              "leftValue": "={{ $json.structuredContent.result.status }}",
+              "rightValue": "EXECUTED",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "656d210f-c18d-47f6-94f0-c3bbf7f5a9cd",
+      "name": "Founders done?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        1320,
+        600
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "\n// Stop instead of waiting forever when the export failed.\nconst r = $json.structuredContent.result;\nif (r.failure_reason || /FAIL|ERROR|CANCEL/i.test(r.status || '')) throw new Error(`The export stopped: ${r.status} ${r.failure_reason || ''}`);\nreturn [$input.first()];\n"
+      },
+      "id": "7e39ca04-d89d-4daf-ac7e-b571df981ce7",
+      "name": "Still running? (founders)",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1320,
+        780
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "\n// One row per founder or head; people outside the search filters are dropped.\nconst today = $now.toFormat('yyyy-MM-dd');\nconst rows = ($json.structuredContent.result.prospects || [])\n  .filter(p => !['no', 'no_match'].includes(String(p['Matches Filters'] || '').toLowerCase()))\n  .map(p => ({ json: { Date: today, Name: p['Full Name'] || '', Title: String(p['Current Job'] || '').trim(),\n    Company: p['Company Name'] || '', Email: p['Email'] || '', 'Email status': p['Email Status'] || 'not found',\n    LinkedIn: p['Linkedin URL Public'] || '' } }));\nif (!rows.length) throw new Error('No founder or head found inside the filters.');\nreturn rows;\n"
+      },
+      "id": "0e7fd903-65a4-47cb-9dac-3b594877d269",
+      "name": "Founder rows",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1540,
+        600
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "mode": "url",
+          "value": "={{ $('Your settings').first().json.people_tab_url }}"
+        },
+        "options": {},
+        "columns": {
+          "mappingMode": "autoMapInputData",
+          "value": {},
+          "matchingColumns": [],
+          "schema": []
+        },
+        "sheetName": {
+          "__rl": true,
+          "mode": "url",
+          "value": "={{ $('Your settings').first().json.people_tab_url }}"
+        }
+      },
+      "id": "a38ae293-2f40-4aa8-bab1-300e8f37c734",
+      "name": "Add to People",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        1760,
+        600
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "",
+          "name": "Google Sheets account"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Export the companies": {
+      "main": [
+        [
+          {
+            "node": "Wait 30 s (companies)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait 30 s (companies)": {
+      "main": [
+        [
+          {
+            "node": "Check the companies export",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check the companies export": {
+      "main": [
+        [
+          {
+            "node": "Companies done?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Companies done?": {
+      "main": [
+        [
+          {
+            "node": "Score the startups",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Still running? (companies)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Still running? (companies)": {
+      "main": [
+        [
+          {
+            "node": "Wait 30 s (companies)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Export the founders": {
+      "main": [
+        [
+          {
+            "node": "Wait 30 s (founders)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait 30 s (founders)": {
+      "main": [
+        [
+          {
+            "node": "Check the founders export",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check the founders export": {
+      "main": [
+        [
+          {
+            "node": "Founders done?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Founders done?": {
+      "main": [
+        [
+          {
+            "node": "Founder rows",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Still running? (founders)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Still running? (founders)": {
+      "main": [
+        [
+          {
+            "node": "Wait 30 s (founders)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Every Monday at 8": {
+      "main": [
+        [
+          {
+            "node": "Your settings",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Run now": {
+      "main": [
+        [
+          {
+            "node": "Your settings",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Your settings": {
+      "main": [
+        [
+          {
+            "node": "Startups already in your sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Startups already in your sheet": {
+      "main": [
+        [
+          {
+            "node": "Export the companies",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Score the startups": {
+      "main": [
+        [
+          {
+            "node": "Add to Startups",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Founders search",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Founders search": {
+      "main": [
+        [
+          {
+            "node": "Export the founders",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Founder rows": {
+      "main": [
+        [
+          {
+            "node": "Add to People",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "pinData": {}
+}

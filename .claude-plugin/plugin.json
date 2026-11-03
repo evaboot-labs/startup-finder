@@ -1,0 +1,23 @@
+{
+  "name": "startup-finder",
+  "version": "1.0.0",
+  "description": "An AI agent finds startups on LinkedIn through Evaboot: a Sales Navigator account search for young, growing companies, a startup score per company, then the founders of the startups kept, with verified emails.",
+  "author": {
+    "name": "Evaboot",
+    "url": "https://evaboot.com"
+  },
+  "homepage": "https://github.com/evaboot-labs/startup-finder",
+  "repository": "https://github.com/evaboot-labs/startup-finder",
+  "license": "MIT",
+  "privacyPolicyUrl": "https://evaboot.com/privacy-policy",
+  "keywords": [
+    "startups",
+    "prospecting",
+    "sales-navigator",
+    "lead-generation",
+    "evaboot",
+    "mcp"
+  ],
+  "skills": "./skills/",
+  "mcpServers": "./.mcp.json"
+}
